@@ -1,0 +1,19 @@
+apiVersion: plugin.halo.run/v1alpha1
+kind: Plugin
+metadata:
+  name: plugin-pdf
+spec:
+  enabled: true
+  requires: ">=2.23.0"
+  author:
+    name: AR-26710
+    website: https://github.com/AR-26710
+  logo: logo.png
+  homepage: https://github.com/AR-26710/plugin-pdf#readme
+  repo: https://github.com/AR-26710/plugin-pdf
+  issues: https://github.com/AR-26710/plugin-pdf/issues
+  displayName: "PDF 预览"
+  description: "支持在 Halo 编辑器中插入 PDF 文件，支持从附件库选择或使用外链，提供在线预览功能"
+  license:
+    - name: "GPL-3.0"
+      url: "https://github.com/AR-26710/plugin-pdf/blob/main/LICENSE"

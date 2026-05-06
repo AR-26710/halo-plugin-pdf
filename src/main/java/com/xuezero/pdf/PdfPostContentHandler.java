@@ -1,5 +1,7 @@
 package com.xuezero.pdf;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -19,6 +21,25 @@ import run.halo.app.theme.ReactivePostContentHandler;
 public class PdfPostContentHandler implements ReactivePostContentHandler {
 
     private static final String VIEWER_BASE_PATH = "/plugins/plugin-pdf/assets/pdfjs/viewer.html";
+
+    private static final java.util.Set<String> ALLOWED_SCHEMES =
+        java.util.Set.of("http", "https");
+
+    boolean isValidPdfSrc(String src) {
+        String trimmed = src.trim().toLowerCase();
+        if (trimmed.isEmpty()) {
+            return false;
+        }
+        if (trimmed.startsWith("/")) {
+            return true;
+        }
+        int colonIndex = trimmed.indexOf(':');
+        if (colonIndex > 0) {
+            String scheme = trimmed.substring(0, colonIndex);
+            return ALLOWED_SCHEMES.contains(scheme);
+        }
+        return false;
+    }
 
     private static final String PDF_VIEWER_CSS =
         ".hp2df-pdf-wrapper{"
@@ -114,10 +135,17 @@ public class PdfPostContentHandler implements ReactivePostContentHandler {
                 wrapper.addClass("hp2df-pdf-wrapper--empty");
                 Element placeholder = new Element("div")
                     .addClass("hp2df-pdf-placeholder")
-                    .text("\uD83D\uDCC4 PDF \u6587\u4EF6\u672A\u914D\u7F6E");
+                    .text("📄 PDF 文件未配置");
+                wrapper.appendChild(placeholder);
+            } else if (!isValidPdfSrc(src)) {
+                wrapper.addClass("hp2df-pdf-wrapper--empty");
+                Element placeholder = new Element("div")
+                    .addClass("hp2df-pdf-placeholder")
+                    .text("⚠️ PDF 地址不合法");
                 wrapper.appendChild(placeholder);
             } else {
-                String viewerUrl = VIEWER_BASE_PATH + "?file=" + src;
+                String encodedSrc = URLEncoder.encode(src, StandardCharsets.UTF_8);
+                String viewerUrl = VIEWER_BASE_PATH + "?file=" + encodedSrc;
                 Element iframe = new Element("iframe")
                     .addClass("hp2df-pdf-iframe")
                     .attr("src", viewerUrl)

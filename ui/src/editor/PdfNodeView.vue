@@ -7,16 +7,32 @@ import { Icon } from '@iconify/vue'
 
 const VIEWER_BASE_PATH = '/plugins/plugin-pdf/assets/pdfjs/viewer.html'
 
+const ALLOWED_SCHEMES = ['http', 'https']
+
+function isValidPdfSrc(src: string): boolean {
+  const trimmed = src.trim().toLowerCase()
+  if (!trimmed) return false
+  if (trimmed.startsWith('/')) return true
+  const colonIndex = trimmed.indexOf(':')
+  if (colonIndex > 0) {
+    const scheme = trimmed.substring(0, colonIndex)
+    return ALLOWED_SCHEMES.includes(scheme)
+  }
+  return false
+}
+
 const props = defineProps<NodeViewProps>()
 
 const externalUrl = ref('')
 const showExternalInput = ref(false)
 const attachmentSelectorVisible = ref(false)
 const isEditing = ref(false)
+const validationError = ref('')
 
 const src = computed(() => props.node.attrs.src || '')
 const fileName = computed(() => props.node.attrs.fileName || '')
 const isConfigured = computed(() => !!src.value)
+const isValidSrc = computed(() => isValidPdfSrc(src.value))
 
 const displayName = computed(() => {
   if (fileName.value) return fileName.value
@@ -35,6 +51,11 @@ const viewerUrl = computed(() => {
 function handleUrlConfirm() {
   const url = externalUrl.value.trim()
   if (!url) return
+  if (!isValidPdfSrc(url)) {
+    validationError.value = '地址不合法：仅支持 http/https 链接或以 / 开头的相对路径'
+    return
+  }
+  validationError.value = ''
   props.updateAttributes({ src: url, fileName: '' })
   externalUrl.value = ''
   showExternalInput.value = false
@@ -105,9 +126,11 @@ const iframeHeight = ref(600)
                     v-model="externalUrl"
                     type="text"
                     class="pdf-node-view__external-input"
+                    :class="{ 'pdf-node-view__external-input--error': validationError }"
                     placeholder="https://example.com/document.pdf"
                     @keyup.enter="handleUrlConfirm"
                   />
+                  <p v-if="validationError" class="pdf-node-view__error-text">{{ validationError }}</p>
                 </div>
               </div>
             </div>
@@ -119,7 +142,7 @@ const iframeHeight = ref(600)
     <template v-else>
       <div
         class="pdf-node-view__preview"
-        :class="{ 'pdf-node-view__preview--selected': selected }"
+        :class="{ 'pdf-node-view__preview--selected': selected, 'pdf-node-view__preview--invalid': !isValidSrc }"
       >
         <div
           class="pdf-node-view__hover-overlay"
@@ -144,7 +167,11 @@ const iframeHeight = ref(600)
             </button>
           </div>
         </div>
-        <div class="pdf-node-view__iframe-wrapper" :style="{ height: iframeHeight + 'px' }">
+        <div v-if="!isValidSrc" class="pdf-node-view__invalid-warning">
+          <Icon icon="ri:error-warning-line" class="pdf-node-view__invalid-icon" />
+          <span>PDF 地址不合法，请更换有效的链接</span>
+        </div>
+        <div v-else class="pdf-node-view__iframe-wrapper" :style="{ height: iframeHeight + 'px' }">
           <iframe
             :src="viewerUrl"
             class="pdf-node-view__iframe"
@@ -271,6 +298,16 @@ const iframeHeight = ref(600)
   border-color: #3b82f6;
 }
 
+.pdf-node-view__external-input--error {
+  border-color: #ef4444;
+}
+
+.pdf-node-view__error-text {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #ef4444;
+}
+
 .pdf-node-view__preview {
   position: relative;
   border: 2px solid #e5e7eb;
@@ -283,6 +320,11 @@ const iframeHeight = ref(600)
 .pdf-node-view__preview--selected {
   border-color: #3b82f6;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.pdf-node-view__preview--invalid {
+  border-color: #fca5a5;
+  background: #fef2f2;
 }
 
 .pdf-node-view__hover-overlay {
@@ -386,6 +428,22 @@ const iframeHeight = ref(600)
 .pdf-node-view__action-btn--danger:hover {
   background: #fee2e2;
   color: #ef4444;
+}
+
+.pdf-node-view__invalid-warning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 20px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.pdf-node-view__invalid-icon {
+  width: 20px;
+  height: 20px;
 }
 
 .pdf-node-view__iframe-wrapper {

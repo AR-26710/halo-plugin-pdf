@@ -19,7 +19,7 @@ Halo 2.x 插件，支持在编辑器中插入 PDF 文件并提供在线预览功
 
 ## 安装
 
-1. 从 [Releases](https://github.com/AR-26710/plugin-pdf/releases) 页面下载最新版本的 JAR 文件
+1. 从 [Releases](https://github.com/AR-26710/halo-plugin-pdf/releases) 页面下载最新版本的 JAR 文件
 2. 在后台「插件管理」中安装插件
 
 ## 使用方式
@@ -35,7 +35,7 @@ Halo 2.x 插件，支持在编辑器中插入 PDF 文件并提供在线预览功
 
 ```bash
 # 克隆仓库
-git clone https://github.com/AR-26710/plugin-pdf.git
+git clone https://github.com/AR-26710/halo-plugin-pdf.git
 cd plugin-pdf
 
 # 启动 Halo 开发环境（启用插件热加载）
